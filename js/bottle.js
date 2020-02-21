@@ -38,21 +38,33 @@ $(function() {
 		
 	})(f);
 	
-	f.Register('bottle', function(type, obj) {
+	f.Register('bottle', function(type, formData) {
 		var headPart = f.New('span', {
 			"addClass": ["bottle-head"],
 			"append": [f.New('span').addClass("filler")]
 		});
-		
 		var bodyPart = f.New('span', {
 			"addClass": ["bottle-body"],
 			"append": [f.New('span').addClass("filler")]
 		});
+		var theBottle = f.New('div').addClass("bottle").append(headPart).append(bodyPart);
 		
-		return f.New('div').addClass("bottle").append(headPart).append(bodyPart);
+		var bottleName;
+		
+		for (var i = 0; i < formData.length; i++) {
+			switch (formData[i].name) {
+			case "bottle-text":
+				bottleName = formData[i].value;
+				break;
+			}
+		}
+		
+		return f.New("div").addClass("col p-2").append(theBottle);
 	});
 	
-	$("#add-bottle").on("click", function() {
-		$("#bottle-container").append(f.New('bottle'));
+	$("#bottle-info").on("submit", function(e) {
+		e.preventDefault();
+		// check validity here
+		$("#bottle-container").append(f.New('bottle'), $.map($(this).serializeArray());
 	});
 });
