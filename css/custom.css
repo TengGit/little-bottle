@@ -24,7 +24,6 @@
 	border-left: 3px solid black;
 	border-right: 3px solid black;
 	box-sizing: border-box;
-	background: yellow;
 	overflow: hidden;
 }
 
@@ -40,4 +39,15 @@
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
+}
+
+.btn.bottle-color-picker {
+	width: 2.5rem;
+	height: 2.5rem;
+	margin: 1ex;
+}
+
+.btn.bottle-color-picker.active {
+	outline: double black;
+	outline-width: thick;
 }

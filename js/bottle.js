@@ -39,18 +39,25 @@ $(function() {
 	})(f);
 	
 	f.Register('bottle', function(type, formData) {
-		var bottleName;
+		var bottleName, bgColor;
 		
 		for (var i = 0; i < formData.length; i++) {
 			switch (formData[i].name) {
 			case "bottle-text":
 				bottleName = formData[i].value;
 				break;
+			case "bottle-color":
+				if (formData[i].value !== "custom") {
+					bgColor = formData[i].value;
+				} else {
+					bgColor = "black";
+				}
+				break;
 			}
 		}
 		
-		var headPart = f.New('span').addClass("bottle-head").append(f.New('span').addClass("filler"));
-		var bodyPart = f.New('span').addClass("bottle-body").append(f.New('span').addClass("filler"));
+		var headPart = f.New('span').addClass("bottle-head").css("background-color", bgColor).append(f.New('span').addClass("filler"));
+		var bodyPart = f.New('span').addClass("bottle-body").css("background-color", bgColor).append(f.New('span').addClass("filler"));
 		var theBottle = f.New('div').addClass("bottle").append(headPart).append(bodyPart);
 		var bottleContainer = f.New('div').append(theBottle);
 		var nameLabel = f.New("div").addClass("bottle-description").text(bottleName);
@@ -83,11 +90,17 @@ $(function() {
 	var MAX_BOTTLE_NUM = 100;
 	var ERR_BOTTLE_NUMBER_EXCEED = "最多只能放 #1 个瓶子！";
 	var ERR_BOTTLE_EXISTS = '瓶子 "#1" 已存在！';
+	var DBLCLICK_THRESHOLD = 300;
+	
+	$("[name=bottle-color]").each(function() {
+		$(this).parent().css("background-color", this.value);
+	});
 	
 	$("#bottle-info").on("submit", function(e) {
 		e.preventDefault();
 		// check validity here
 		var bottleName = $("#bottle-text").val();
+		var lastClickTime = 0;
 		
 		if (size >= MAX_BOTTLE_NUM) {
 			alert(ERR_BOTTLE_NUMBER_EXCEED.replace("#1", MAX_BOTTLE_NUM));
@@ -98,19 +111,30 @@ $(function() {
 		}
 		
 		var newBottle = f.New('bottle', $(this).serializeArray());
-		newBottle.on("mousedown touchstart", function() {
-			$(this).data("currentIntervalHandler", setInterval(function(sel) {
-				var bottle = sel.data("bottle");
-				if (bottle.val() < 100) {
-					bottle.val(bottle.val() + 1);
-				}
-			}, 20, $(this)));
+		newBottle.data("currentIntervalHandler", null);
+		newBottle.on("mousedown touchstart", function(e) {
+			e.preventDefault();
+			
+			var time = Date.now();
+			if (time - lastClickTime > DBLCLICK_THRESHOLD) {
+				var lastIntervalHandler = $(this).data("currentIntervalHandler");
+				if (lastIntervalHandler !== null) clearInterval(lastIntervalHandler);
+				$(this).data("currentIntervalHandler", setInterval(function(sel) {
+					var bottle = sel.data("bottle");
+					if (bottle.val() < 100) {
+						bottle.val(bottle.val() + 1);
+					}
+				}, 20, $(this)));
+				lastClickTime = time;
+			} else {
+				$(this).data("bottle").val(0);
+				lastClickTime = 0;
+			}
 		});
 		newBottle.on("mouseup touchend", function() {
-			clearTimeout($(this).data("currentIntervalHandler"));
-		});
-		newBottle.on("dblclick", function() {
-			$(this).data("bottle").val(0);
+			var handler = $(this).data("currentIntervalHandler");
+			if (handler !== null) clearTimeout(handler);
+			$(this).data("currentIntervalHandler", null);
 		});
 		$("#bottle-container").append(newBottle);
 		bottles[bottleName] = newBottle;
