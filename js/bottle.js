@@ -62,18 +62,18 @@ $(function() {
 		var bottleContainer = f.New('div').append(theBottle);
 		var nameLabel = f.New("div").addClass("bottle-description").text(bottleName);
 		var result = f.New("div").addClass("col p-2").append(bottleContainer).append(nameLabel);
-		result.data("bottle", {
-			"$sel": result,
+		theBottle.data("bottle", {
+			"$sel": theBottle,
 			"$val": 0,
 			val: function() {
 				if (arguments.length) {
 					var newValue = arguments[0];
 					if (newValue > 80) {
-						this.$sel.find(".bottle-head").children(".filler").css("height", (100 - newValue) * 5 + "%");
-						this.$sel.find(".bottle-body").children(".filler").css("height", 0);
+						this.$sel.children(".bottle-head").children(".filler").css("height", (100 - newValue) * 5 + "%");
+						this.$sel.children(".bottle-body").children(".filler").css("height", 0);
 					} else {
-						this.$sel.find(".bottle-head").children(".filler").css("height", "100%");
-						this.$sel.find(".bottle-body").children(".filler").css("height", (80 - newValue) * 1.25 + "%");
+						this.$sel.children(".bottle-head").children(".filler").css("height", "100%");
+						this.$sel.children(".bottle-body").children(".filler").css("height", (80 - newValue) * 1.25 + "%");
 					}
 					this.$val = newValue;
 				} else {
@@ -111,10 +111,12 @@ $(function() {
 		}
 		
 		var newBottle = f.New('bottle', $(this).serializeArray());
-		newBottle.data("currentIntervalHandler", null);
-		newBottle.on("mousedown touchstart", function(e) {
+		var bottleEntity = newBottle.find(".bottle");
+		bottleEntity.data("currentIntervalHandler", null);
+		bottleEntity.on("mousedown touchstart", function(e) {
 			e.preventDefault();
-			
+			console.log(e.target);
+			var bottle = $(this).parent().parent()
 			var time = Date.now();
 			if (time - lastClickTime > DBLCLICK_THRESHOLD) {
 				var lastIntervalHandler = $(this).data("currentIntervalHandler");
@@ -131,7 +133,7 @@ $(function() {
 				lastClickTime = 0;
 			}
 		});
-		newBottle.on("mouseup touchend", function() {
+		bottleEntity.on("mouseup touchend", function() {
 			var handler = $(this).data("currentIntervalHandler");
 			if (handler !== null) clearTimeout(handler);
 			$(this).data("currentIntervalHandler", null);
