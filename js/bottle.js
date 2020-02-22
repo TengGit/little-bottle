@@ -56,8 +56,8 @@ $(function() {
 			}
 		}
 		
-		var headPart = f.New('span').addClass("bottle-head").css("background-color", bgColor).append(f.New('span').addClass("filler"));
-		var bodyPart = f.New('span').addClass("bottle-body").css("background-color", bgColor).append(f.New('span').addClass("filler"));
+		var headPart = f.New('span').addClass("bottle-head").css("background", bgColor).append(f.New('span').addClass("filler"));
+		var bodyPart = f.New('span').addClass("bottle-body").css("background", bgColor).append(f.New('span').addClass("filler"));
 		var theBottle = f.New('div').addClass("bottle").append(headPart).append(bodyPart);
 		var bottleContainer = f.New('div').append(theBottle);
 		var nameLabel = f.New("div").addClass("bottle-description").text(bottleName);
@@ -88,12 +88,13 @@ $(function() {
 	
 	var bottles = {}, size = 0;
 	var MAX_BOTTLE_NUM = 100;
-	var ERR_BOTTLE_NUMBER_EXCEED = "最多只能放 #1 个瓶子！";
-	var ERR_BOTTLE_EXISTS = '瓶子 "#1" 已存在！';
+	var ERR_BOTTLE_NUMBER_EXCEED = "您真有耐心，不过这里最多只能放 #1 个瓶子……";
+	var ERR_BOTTLE_EXISTS = '换个名字吧，瓶子 "#1" 已经有了~';
+	var ERR_BOTTLE_NAME_EMPTY = "给瓶子起个名字呗 :)"
 	var DBLCLICK_THRESHOLD = 300;
 	
 	$("[name=bottle-color]").each(function() {
-		$(this).parent().css("background-color", this.value);
+		$(this).parent().css("background", this.value);
 	});
 	
 	$("#bottle-info").on("submit", function(e) {
@@ -108,6 +109,9 @@ $(function() {
 		} else if (bottles[bottleName] !== undefined) {
 			alert(ERR_BOTTLE_EXISTS.replace("#1", bottleName));
 			return;
+		} else if (bottleName == "") {
+			alert(ERR_BOTTLE_NAME_EMPTY);
+			return;
 		}
 		
 		var newBottle = f.New('bottle', $(this).serializeArray());
@@ -115,7 +119,6 @@ $(function() {
 		bottleEntity.data("currentIntervalHandler", null);
 		bottleEntity.on("mousedown touchstart", function(e) {
 			e.preventDefault();
-			console.log(e.target);
 			var bottle = $(this).parent().parent()
 			var time = Date.now();
 			if (time - lastClickTime > DBLCLICK_THRESHOLD) {
@@ -141,5 +144,7 @@ $(function() {
 		$("#bottle-container").append(newBottle);
 		bottles[bottleName] = newBottle;
 		size++;
+	}).one("submit", function() {
+		$(".tip-after-add").show().alert();
 	});
 });
