@@ -54,7 +54,28 @@ $(function() {
 		var theBottle = f.New('div').addClass("bottle").append(headPart).append(bodyPart);
 		var bottleContainer = f.New('div').append(theBottle);
 		var nameLabel = f.New("div").addClass("bottle-description").text(bottleName);
-		return f.New("div").addClass("col p-2").append(bottleContainer).append(nameLabel);
+		var result = f.New("div").addClass("col p-2").append(bottleContainer).append(nameLabel);
+		result.data("bottle", {
+			"$sel": result,
+			"$val": 0,
+			val: function() {
+				if (arguments.length) {
+					var newValue = arguments[0];
+					if (newValue > 80) {
+						this.$sel.find(".bottle-head").children(".filler").css("height", (100 - newValue) * 5 + "%");
+						this.$sel.find(".bottle-body").children(".filler").css("height", 0);
+					} else {
+						this.$sel.find(".bottle-head").children(".filler").css("height", "100%");
+						this.$sel.find(".bottle-body").children(".filler").css("height", (80 - newValue) * 1.25 + "%");
+					}
+					this.$val = newValue;
+				} else {
+					return this.$val;;
+				}
+			},
+			name: bottleName
+		});
+		return result;
 	});
 	
 	
@@ -77,6 +98,18 @@ $(function() {
 		}
 		
 		var newBottle = f.New('bottle', $(this).serializeArray());
+		newBottle.on("mousedown touchstart", function() {
+			$(this).data("currentIntervalHandler", setInterval(function(sel) {
+				var bottle = sel.data("bottle");
+				if (bottle.val() < 100) {
+					bottle.val(bottle.val() + 1);
+				}
+			}, 20, $(this)));
+		});
+		newBottle.on("mouseup touchend", function() {
+			clearTimeout($(this).data("currentIntervalHandler"));
+		});
+		newBottle
 		$("#bottle-container").append(newBottle);
 		bottles[bottleName] = newBottle;
 		size++;
