@@ -11,12 +11,12 @@
 	<div class="container">
 	  <h2 class="text-center my-2">我的小瓶子</h2>
 	  <div class="container-fluid">
-		<div class="row row-cols-5" id="bottle-container"></div>
+		<div class="row row-cols-5 justify-content-center text-center" id="bottle-container"></div>
 	  </div>
 	  <form id="bottle-info" autocomplete="off">
-	  <div class="form-group">
-	  <label for="bottle-text">啥瓶子？</label>
-	  <input type="text" class="form-control" name="bottle-text" id="bottle-text" placeholder="我有多闲">
+	  <div class="form-group row align-items-center">
+	  <label for="bottle-text" class="col-sm-3">啥瓶子？</label>
+	  <input type="text" class="form-control col-sm-9" name="bottle-text" id="bottle-text" placeholder="我有多闲">
 	  </div>
 	  <button type="submit" class="btn btn-primary form-control" id="add-bottle">添加小瓶子</button>
 	  </form>

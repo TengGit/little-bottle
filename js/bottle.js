@@ -39,16 +39,6 @@ $(function() {
 	})(f);
 	
 	f.Register('bottle', function(type, formData) {
-		var headPart = f.New('span', {
-			"addClass": ["bottle-head"],
-			"append": [f.New('span').addClass("filler")]
-		});
-		var bodyPart = f.New('span', {
-			"addClass": ["bottle-body"],
-			"append": [f.New('span').addClass("filler")]
-		});
-		var theBottle = f.New('div').addClass("bottle").append(headPart).append(bodyPart);
-		
 		var bottleName;
 		
 		for (var i = 0; i < formData.length; i++) {
@@ -59,12 +49,36 @@ $(function() {
 			}
 		}
 		
-		return f.New("div").addClass("col p-2").append(theBottle);
+		var headPart = f.New('span').addClass("bottle-head").append(f.New('span').addClass("filler"));
+		var bodyPart = f.New('span').addClass("bottle-body").append(f.New('span').addClass("filler"));
+		var theBottle = f.New('div').addClass("bottle").append(headPart).append(bodyPart);
+		var bottleContainer = f.New('div').append(theBottle);
+		var nameLabel = f.New("div").addClass("bottle-description").text(bottleName);
+		return f.New("div").addClass("col p-2").append(bottleContainer).append(nameLabel);
 	});
+	
+	
+	var bottles = {}, size = 0;
+	var MAX_BOTTLE_NUM = 100;
+	var ERR_BOTTLE_NUMBER_EXCEED = "最多只能放 #1 个瓶子！";
+	var ERR_BOTTLE_EXISTS = '瓶子 "#1" 已存在！';
 	
 	$("#bottle-info").on("submit", function(e) {
 		e.preventDefault();
 		// check validity here
-		$("#bottle-container").append(f.New('bottle'), $.map($(this).serializeArray());
+		var bottleName = $("#bottle-text").val();
+		
+		if (size >= MAX_BOTTLE_NUM) {
+			alert(ERR_BOTTLE_NUMBER_EXCEED.replace("#1", MAX_BOTTLE_NUM));
+			return;
+		} else if (bottles[bottleName] !== undefined) {
+			alert(ERR_BOTTLE_EXISTS.replace("#1", bottleName));
+			return;
+		}
+		
+		var newBottle = f.New('bottle', $(this).serializeArray());
+		$("#bottle-container").append(newBottle);
+		bottles[bottleName] = newBottle;
+		size++;
 	});
 });
