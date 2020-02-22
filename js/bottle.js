@@ -93,6 +93,8 @@ $(function() {
 	var ERR_BOTTLE_NAME_EMPTY = "给瓶子起个名字呗 :)"
 	var DBLCLICK_THRESHOLD = 300;
 	
+	var silenceMode = false;
+	
 	$("[name=bottle-color]").each(function() {
 		$(this).parent().css("background", this.value);
 	});
@@ -104,13 +106,13 @@ $(function() {
 		var lastClickTime = 0;
 		
 		if (size >= MAX_BOTTLE_NUM) {
-			alert(ERR_BOTTLE_NUMBER_EXCEED.replace("#1", MAX_BOTTLE_NUM));
+			silenceMode && alert(ERR_BOTTLE_NUMBER_EXCEED.replace("#1", MAX_BOTTLE_NUM));
 			return;
 		} else if (bottles[bottleName] !== undefined) {
-			alert(ERR_BOTTLE_EXISTS.replace("#1", bottleName));
+			silenceMode && alert(ERR_BOTTLE_EXISTS.replace("#1", bottleName));
 			return;
 		} else if (bottleName == "") {
-			alert(ERR_BOTTLE_NAME_EMPTY);
+			silenceMode && alert(ERR_BOTTLE_NAME_EMPTY);
 			return;
 		}
 		
@@ -147,4 +149,27 @@ $(function() {
 	}).one("submit", function() {
 		$(".tip-after-add").show().alert();
 	});
+	
+	var queryString = location.search;
+	if (queryString.length) {
+		var bottleList = queryString.substring(1).split("&");
+		var lastSubmitted = true;
+		for (var i = 0; i < bottleList.length; i++) {
+			var equalSign = bottleList[i].indexOf("=");
+			if (equalSign !== -1) {
+				var name = bottleList[i].substring(0, equalSign), value = decodeURIComponent(bottleList[i].substring(equalSign + 1));
+				switch (name) {
+				case "n":
+					lastSubmitted || $("#bottle-info").submit().get(0).reset();
+					lastSubmitted = false;
+					$("#bottle-text").val(value.substring(0, 10));
+					break;
+				case "i":
+					$("[name=bottle-color]").eq(parstInt(value)).click();
+					break;
+				}
+			}
+		}
+		lastSubmitted || $("#bottle-info").submit().get(0).reset();
+	}
 });
