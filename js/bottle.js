@@ -109,7 +109,9 @@ $(function() {
 		newBottle.on("mouseup touchend", function() {
 			clearTimeout($(this).data("currentIntervalHandler"));
 		});
-		newBottle
+		newBottle.on("dblclick", function() {
+			$(this).data("bottle").val(0);
+		});
 		$("#bottle-container").append(newBottle);
 		bottles[bottleName] = newBottle;
 		size++;
