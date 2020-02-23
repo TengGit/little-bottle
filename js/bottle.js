@@ -88,6 +88,45 @@ $(function() {
 		return result;
 	});
 	
+	// update QR code
+	var qrLenLimit = [0,    14,   26,   42,   62,   84,   106,  122,  152,  180, 213,
+					  251,  287,  331,  362,  412,  450,  504,  560,  624,  666,
+					  711,  779,  857,  911,  997,  1059, 1125, 1190, 1264, 1370,
+					  1452, 1538, 1628, 1722, 1809, 1911, 1989, 2099, 2213, 2331];
+	var qrCanvas = f.New("canvas");
+	
+	var qrDotSize = 3, qrMargin = 6, qrBlack = "rgb(0, 0, 0)", qrWhite = "rgb(255, 255, 255)";
+	
+	function updateQRCode(text) {
+		var qrVersion = 0;
+		for (qrVersion = 0; qrVersion < qrLenLimit.length && qrLenLimit[qrVersion] < text.length; qrVersion++);
+		if (qrVersion >= qrLenLimit.length) return false;
+		
+		var qrCodec;
+		try {
+			qrCodec = new QRCode(qrVersion, QRErrorCorrectLevel.M);
+			qrCodec.addData(text);
+			qrCodec.make();
+		} catch (err) {
+			return false;
+		}
+		
+		var size = qrCodec.getModuleCount(), qrSize = size * qrDotSize + qrMargin * 2;
+		qrCanvas.attr("width", qrSize).attr("height", qrSize);
+		var context = qrCanvas.get(0).getContext("2d");
+		context.fillStyle = qrWhite;
+		context.fillRect(0, 0, qrSize, qrSize);
+		for (var i = 0; i < size; i++) {
+			for (var j = 0; j < size; j++) {
+				context.fillStyle = (qrCodec.isDark(i, j) ? qrBlack : qrWhite);
+				context.fillRect(qrMargin + qrDotSize * i, qrMargin + qrDotSize * j, qrDotSize, qrDotSize);
+			}
+		}
+		
+		$("#qrcode").css({"width": qrSize, "height": qrSize, "background": "url(" + qrCanvas.get(0).toDataURL("image/png") + ")"});
+		return true;
+	}
+	
 	
 	// main logic
 	var bottles = {}, size = 0;
@@ -164,6 +203,10 @@ $(function() {
 		$(".tip-after-add").show().alert();
 	});
 	
+	function updateQRCodeAndPrompt(text) {
+		updateQRCode(text) ? $("#qr-region").show() : ($("#qr-region").hide(), alert(ERR_QRCODE_GENERATION_FAIL));
+	}
+	
 	// if it's visited from a generated template link...
 	var queryString = location.search;
 	if (queryString.length) {
@@ -186,47 +229,8 @@ $(function() {
 				}
 			}
 		}
-		lastSubmitted || $("#bottle-info").submit().get(0).reset();
+		lastSubmitted || ($("#bottle-info").submit().get(0).reset(), updateQRCodeAndPrompt(location.href));
 		silenceMode = false;
-	}
-	
-	// update QR code
-	var qrLenLimit = [0,    14,   26,   42,   62,   84,   106,  122,  152,  180, 213,
-					  251,  287,  331,  362,  412,  450,  504,  560,  624,  666,
-					  711,  779,  857,  911,  997,  1059, 1125, 1190, 1264, 1370,
-					  1452, 1538, 1628, 1722, 1809, 1911, 1989, 2099, 2213, 2331];
-	var qrCanvas = f.New("canvas");
-	
-	var qrDotSize = 3, qrMargin = 6, qrBlack = "rgb(0, 0, 0)", qrWhite = "rgb(255, 255, 255)";
-	
-	function updateQRCode(text) {
-		var qrVersion = 0;
-		for (qrVersion = 0; qrVersion < qrLenLimit.length && qrLenLimit[qrVersion] < text.length; qrVersion++);
-		if (qrVersion >= qrLenLimit.length) return false;
-		
-		var qrCodec;
-		try {
-			qrCodec = new QRCode(qrVersion, QRErrorCorrectLevel.M);
-			qrCodec.addData(text);
-			qrCodec.make();
-		} catch (err) {
-			return false;
-		}
-		
-		var size = qrCodec.getModuleCount(), qrSize = size * qrDotSize + qrMargin * 2;
-		qrCanvas.attr("width", qrSize).attr("height", qrSize);
-		var context = qrCanvas.get(0).getContext("2d");
-		context.fillStyle = qrWhite;
-		context.fillRect(0, 0, qrSize, qrSize);
-		for (var i = 0; i < size; i++) {
-			for (var j = 0; j < size; j++) {
-				context.fillStyle = (qrCodec.isDark(i, j) ? qrBlack : qrWhite);
-				context.fillRect(qrMargin + qrDotSize * i, qrMargin + qrDotSize * j, qrDotSize, qrDotSize);
-			}
-		}
-		
-		$("#qrcode").css({"width": qrSize, "height": qrSize, "background": "url(" + qrCanvas.get(0).toDataURL("image/png") + ")"});
-		return true;
 	}
 	
 	// generate template link
@@ -239,7 +243,7 @@ $(function() {
 		var link = url + "?" + qsArray.join("&")
 		$("#template-link").val(link);
 		$("#copy-link").prop("disabled", false);
-		updateQRCode(link) || alert(ERR_QRCODE_GENERATION_FAIL);
+		updateQRCodeAndPrompt(link);
 	});
 	
 	// copy template link
@@ -252,7 +256,14 @@ $(function() {
 		elem.prop("disabled", true);
 	});
 	
-	if (!updateQRCode(location.href)) {
-		alert(ERR_QRCODE_GENERATION_FAIL);
-	}
+	// complete button
+	$("#complete-button").on("click", function() {
+		$("#bottle-info").hide();
+		if ($("#copy-link").prop("disabled")) {
+			updateQRCodeAndPrompt(location.href);
+		}
+		$.each(bottles, function(name, value) {
+			value.find(".bottle").off("mouseup mousedown touchstart touchend");
+		});
+	});
 });
