@@ -123,7 +123,7 @@ $(function() {
 			}
 		}
 		
-		$("#qrcode").css({"width": qrSize, "height": qrSize, "background": "url(" + qrCanvas.get(0).toDataURL("image/png") + ")"});
+		$("#qrcode").attr("width", qrSize).attr("height", qrSize).attr("src", qrCanvas.get(0).toDataURL("image/png"));
 		return true;
 	}
 	
