@@ -95,6 +95,7 @@ $(function() {
 	var ERR_BOTTLE_NUMBER_EXCEED = "您真有耐心，不过这里最多只能放 #1 个瓶子……";
 	var ERR_BOTTLE_EXISTS = '换个名字吧，瓶子 "#1" 已经有了~';
 	var ERR_BOTTLE_NAME_EMPTY = "给瓶子起个名字呗 :)"
+	var ERR_QRCODE_GENERATION_FAIL = "分享二维码生成失败……"
 	var DBLCLICK_THRESHOLD = 300;
 	
 	var silenceMode = false;
@@ -238,7 +239,7 @@ $(function() {
 		var link = url + "?" + qsArray.join("&")
 		$("#template-link").val(link);
 		$("#copy-link").prop("disabled", false);
-		updateQRCode(link);
+		updateQRCode(link) || alert(ERR_QRCODE_GENERATION_FAIL);
 	});
 	
 	// copy template link
@@ -251,5 +252,7 @@ $(function() {
 		elem.prop("disabled", true);
 	});
 	
-	console.log(updateQRCode(location.href));
+	if (!updateQRCode(location.href)) {
+		alert(ERR_QRCODE_GENERATION_FAIL);
+	}
 });
