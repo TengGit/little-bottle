@@ -99,6 +99,8 @@ $(function() {
 		$(this).parent().css("background", this.value);
 	});
 	
+	$("[data-toggle=tooltip]").tooltip("disable");
+	
 	$("#bottle-info").on("submit", function(e) {
 		e.preventDefault();
 		// check validity here
@@ -106,13 +108,13 @@ $(function() {
 		var lastClickTime = 0;
 		
 		if (size >= MAX_BOTTLE_NUM) {
-			silenceMode && alert(ERR_BOTTLE_NUMBER_EXCEED.replace("#1", MAX_BOTTLE_NUM));
+			silenceMode || alert(ERR_BOTTLE_NUMBER_EXCEED.replace("#1", MAX_BOTTLE_NUM));
 			return;
 		} else if (bottles[bottleName] !== undefined) {
-			silenceMode && alert(ERR_BOTTLE_EXISTS.replace("#1", bottleName));
+			silenceMode || alert(ERR_BOTTLE_EXISTS.replace("#1", bottleName));
 			return;
 		} else if (bottleName == "") {
-			silenceMode && alert(ERR_BOTTLE_NAME_EMPTY);
+			silenceMode || alert(ERR_BOTTLE_NAME_EMPTY);
 			return;
 		}
 		
@@ -144,6 +146,8 @@ $(function() {
 			$(this).data("currentIntervalHandler", null);
 		});
 		$("#bottle-container").append(newBottle);
+		
+		newBottle.data("color-index", $("[name=bottle-color]:checked").index("[name=bottle-color]"));
 		bottles[bottleName] = newBottle;
 		size++;
 	}).one("submit", function() {
@@ -152,6 +156,7 @@ $(function() {
 	
 	var queryString = location.search;
 	if (queryString.length) {
+		silenceMode = true;
 		var bottleList = queryString.substring(1).split("&");
 		var lastSubmitted = true;
 		for (var i = 0; i < bottleList.length; i++) {
@@ -165,11 +170,31 @@ $(function() {
 					$("#bottle-text").val(value.substring(0, 10));
 					break;
 				case "i":
-					$("[name=bottle-color]").eq(parstInt(value)).click();
+					$("[name=bottle-color]").eq(parseInt(value)).click();
 					break;
 				}
 			}
 		}
 		lastSubmitted || $("#bottle-info").submit().get(0).reset();
+		silenceMode = false;
 	}
+	
+	$("#generate-templink").on("click", function() {
+		var url = location.protocol + "//" + location.host + location.pathname;
+		var qsArray = [];
+		for (var name in bottles) {
+			qsArray.push("n=" + encodeURIComponent(name) + "&i=" + bottles[name].data("color-index"));
+		}
+		$("#template-link").val(url + "?" + qsArray.join("&"));
+		$("#copy-link").prop("disabled", false);
+	});
+	
+	$("#copy-link").on("click", function() {
+		var elem = $("#template-link");
+		elem.prop("disabled", false);
+		elem.get(0).focus();
+		elem.get(0).setSelectionRange(0, elem.val().length);
+		document.execCommand("copy") && ($(this).tooltip(), elem.get(0).setSelectionRange(0, 0));
+		elem.prop("disabled", true);
+	});
 });
