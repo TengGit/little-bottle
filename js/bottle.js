@@ -1,6 +1,7 @@
 $(function() {
 	var f = {};
 	
+	// New element with specified tag or new customized component
 	(function(exports) {
 		'use strict';
 		
@@ -38,6 +39,8 @@ $(function() {
 		
 	})(f);
 	
+	
+	// Bottle component
 	f.Register('bottle', function(type, formData) {
 		var bottleName, bgColor;
 		
@@ -86,6 +89,7 @@ $(function() {
 	});
 	
 	
+	// main logic
 	var bottles = {}, size = 0;
 	var MAX_BOTTLE_NUM = 100;
 	var ERR_BOTTLE_NUMBER_EXCEED = "您真有耐心，不过这里最多只能放 #1 个瓶子……";
@@ -95,12 +99,17 @@ $(function() {
 	
 	var silenceMode = false;
 	
+	
+	// change "color selection" controls' background
 	$("[name=bottle-color]").each(function() {
 		$(this).parent().css("background", this.value);
 	});
 	
+	// "Copy" button and "Copied" tooltip
 	$("[data-toggle=tooltip]").tooltip("disable");
 	
+	
+	// Add a bottle
 	$("#bottle-info").on("submit", function(e) {
 		e.preventDefault();
 		// check validity here
@@ -154,6 +163,7 @@ $(function() {
 		$(".tip-after-add").show().alert();
 	});
 	
+	// if it's visited from a generated template link...
 	var queryString = location.search;
 	if (queryString.length) {
 		silenceMode = true;
@@ -179,16 +189,59 @@ $(function() {
 		silenceMode = false;
 	}
 	
+	// update QR code
+	var qrLenLimit = [0,    14,   26,   42,   62,   84,   106,  122,  152,  180, 213,
+					  251,  287,  331,  362,  412,  450,  504,  560,  624,  666,
+					  711,  779,  857,  911,  997,  1059, 1125, 1190, 1264, 1370,
+					  1452, 1538, 1628, 1722, 1809, 1911, 1989, 2099, 2213, 2331];
+	var qrCanvas = f.New("canvas");
+	
+	var qrDotSize = 3, qrMargin = 6, qrBlack = "rgb(0, 0, 0)", qrWhite = "rgb(255, 255, 255)";
+	
+	function updateQRCode(text) {
+		var qrVersion = 0;
+		for (qrVersion = 0; qrVersion < qrLenLimit.length && qrLenLimit[qrVersion] < text.length; qrVersion++);
+		if (qrVersion >= qrLenLimit.length) return false;
+		
+		var qrCodec;
+		try {
+			qrCodec = new QRCode(qrVersion, QRErrorCorrectLevel.M);
+			qrCodec.addData(text);
+			qrCodec.make();
+		} catch (err) {
+			return false;
+		}
+		
+		var size = qrCodec.getModuleCount(), qrSize = size * qrDotSize + qrMargin * 2;
+		qrCanvas.attr("width", qrSize).attr("height", qrSize);
+		var context = qrCanvas.get(0).getContext("2d");
+		context.fillStyle = qrWhite;
+		context.fillRect(0, 0, qrSize, qrSize);
+		for (var i = 0; i < size; i++) {
+			for (var j = 0; j < size; j++) {
+				context.fillStyle = (qrCodec.isDark(i, j) ? qrBlack : qrWhite);
+				context.fillRect(qrMargin + qrDotSize * i, qrMargin + qrDotSize * j, qrDotSize, qrDotSize);
+			}
+		}
+		
+		$("#qrcode").css({"width": qrSize, "height": qrSize, "background": "url(" + qrCanvas.get(0).toDataURL("image/png") + ")"});
+		return true;
+	}
+	
+	// generate template link
 	$("#generate-templink").on("click", function() {
 		var url = location.protocol + "//" + location.host + location.pathname;
 		var qsArray = [];
 		for (var name in bottles) {
 			qsArray.push("n=" + encodeURIComponent(name) + "&i=" + bottles[name].data("color-index"));
 		}
-		$("#template-link").val(url + "?" + qsArray.join("&"));
+		var link = url + "?" + qsArray.join("&")
+		$("#template-link").val(link);
 		$("#copy-link").prop("disabled", false);
+		updateQRCode(link);
 	});
 	
+	// copy template link
 	$("#copy-link").on("click", function() {
 		var elem = $("#template-link");
 		elem.prop("disabled", false);
@@ -197,4 +250,6 @@ $(function() {
 		document.execCommand("copy") && ($(this).tooltip(), elem.get(0).setSelectionRange(0, 0));
 		elem.prop("disabled", true);
 	});
+	
+	console.log(updateQRCode(location.href));
 });

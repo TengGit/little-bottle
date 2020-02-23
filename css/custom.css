@@ -50,3 +50,10 @@
 	outline: double black;
 	outline-width: thick;
 }
+
+.qrcode {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+}
+
